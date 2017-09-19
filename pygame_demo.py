@@ -1,4 +1,6 @@
-import pygame, sys
+import os
+import sys
+import pygame
 from pygame.locals import *
 from random import randint
 
@@ -40,8 +42,15 @@ def draw_triangle(surf, x, y, r, col):
     pygame.draw.polygon(surf, COL_WHITE, ((x, y-1-r), (x+1+r*0.86, y+1+r*0.5), (x-1-r*0.86, y+1+r*0.5)), 1 )
 
 	
+def play_sound(filename):
+    """
+	Play a sound
+	"""
+    pygame.mixer.music.load(filename)
+    pygame.mixer.music.play(0)	
+	
 
-def draw_random_activity(surf, max_x, max_y, max_size):
+def draw_random_activity(surf, max_x, max_y, max_size, sound_list):
     """
 	Draw a random activity (shape, ...)
 	"""
@@ -53,6 +62,8 @@ def draw_random_activity(surf, max_x, max_y, max_size):
     r = randint(MIN_SHAPE_SIZE, MIN_SHAPE_SIZE+max_size)
     col = COLOR_ARR[ randint(0, len(COLOR_ARR)-1) ] # (255, 0, 0)
     activity = randint(0, MAX_ACTIVITY-1)
+    
+    sound_file = sound_list[randint(0, len(sound_list)-1)] #"sounds\Jump-SoundBible.com-1007297584.mp3"
 	
     if (activity == 0):
         draw_circle(surf, x, y, r, col)
@@ -60,6 +71,8 @@ def draw_random_activity(surf, max_x, max_y, max_size):
         draw_rect(surf, x, y, r, randint(MIN_SHAPE_SIZE, MIN_SHAPE_SIZE+r-1), col)
     elif (activity == 2):
         draw_triangle(surf, x, y, r, col)
+		
+    play_sound(sound_file)	
 
 		
 pygame.init()
@@ -72,12 +85,15 @@ max_y = info.current_h
 DISPLAYSURF = pygame.display.set_mode((max_x, max_y), pygame.FULLSCREEN)
 pygame.display.set_caption('Hello World!')
 
-
-
+sound_list = []
+for file in os.listdir("sounds"):
+    if file.endswith(".mp3"):
+        sound_list.append(os.path.join("sounds", file))
+		
 while True: # main game loop
     for event in pygame.event.get():
 	    if (event.type == KEYDOWN):
-		    draw_random_activity(DISPLAYSURF, max_x, max_y, 200)
+		    draw_random_activity(DISPLAYSURF, max_x, max_y, 200, sound_list)
 
 	    elif (event.type == QUIT):
 	        print("Quiting")
