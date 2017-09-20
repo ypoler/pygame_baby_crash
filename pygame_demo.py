@@ -2,21 +2,23 @@ import os
 import sys
 import pygame
 import argparse
+import math
 from pygame.locals import *
 from random import randint
 
 
-MAX_ACTIVITY = 3	
 MIN_SHAPE_SIZE = 100
-COL_WHITE = (255, 255, 255)
-COL_BLACK = (0, 0, 0)
+MAX_SHAPE_SIZE = 200
+
 
 col_dict = { 'RED' : (255, 0, 0),
              'GREEN' : (0, 255, 0), 
 			 'BLUE' : (0, 0, 255),
 			 'YELLOW' : (255, 255, 0),
              'WHITE' : (255, 255, 255),
-             'ORANGE' : (255, 165, 0)  
+			 'BLACK' : (0, 0, 0),
+			 'PURPLE' : (128, 0, 128),
+             'ORANGE' : (255, 128, 0)  
  			}
 
 			
@@ -29,6 +31,12 @@ def play_sound(filename):
     pygame.mixer.music.play(0)	
 
 
+
+def GetDots(x, y, r, n, offset=0):
+    dots = []
+    for idx in range(n):
+        dots.append( ( x+r*math.cos(math.pi*2/n*(idx-1)+offset), y+r*math.sin(math.pi*2/n*(idx-1)+offset) ) )
+    return dots
 	
 class ShapeObject:
     """
@@ -37,8 +45,7 @@ class ShapeObject:
     x = 0
     y = 0
     size = 0
-    col = COL_BLACK
-    name = ""
+    col = col_dict['BLACK']
 
     def __init__(self, x, y, size, col):
         self.x = x
@@ -48,71 +55,104 @@ class ShapeObject:
 
     def Draw(self, surf):
         pass	
-
+		
 
 
 class ShapeCircle(ShapeObject):
-    name = "circle"
-
     def Draw(self, surf):
 		x = self.x
 		y = self.y
 		r = self.size
 		pygame.draw.circle(surf, self.col, (x, y), r)
-		pygame.draw.circle(surf, COL_WHITE, (x, y), r+1, 1)
+		pygame.draw.circle(surf, col_dict['WHITE'], (x, y), r, 1)
 	
 
 class ShapeTriangle(ShapeObject):
-    name = "triangle"
-
     def Draw(self, surf):
         x = self.x
         y = self.y
         r = self.size
-        pygame.draw.polygon(surf, self.col, ((x, y-r), (x+r*0.86, y+r*0.5), (x-r*0.86, y+r*0.5)) )
-        pygame.draw.polygon(surf, COL_WHITE, ((x, y-1-r), (x+1+r*0.86, y+1+r*0.5), (x-1-r*0.86, y+1+r*0.5)), 1 )
+        dots = GetDots(x, y, r, 3, math.radians(30))
+        pygame.draw.polygon(surf, self.col, dots ) 
+        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1)
 	
 
 class ShapeRectangle(ShapeObject):
-    name = "rectangle"
-
     def Draw(self, surf):
         x = self.x
         y = self.y
         r = self.size
-        pygame.draw.rect(surf, self.col, (x-r*0.707, y-r*0.707, r*0.707*2, r*0.707*2) )
-        pygame.draw.rect(surf, COL_WHITE, (x-r*0.707-1, y-r*0.707-1, r*0.707*2+2, r*0.707*2+2), 1 )
-	
+        dots = GetDots(x, y, r, 4, math.radians(45))
+        pygame.draw.polygon(surf, self.col, dots ) 
+        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
+		
 
-def draw_random_activity(surf, max_x, max_y, max_size, sound_list):
+class ShapePentagon(ShapeObject):
+    def Draw(self, surf):
+        x = self.x
+        y = self.y
+        r = self.size
+        dots = GetDots(x, y, r, 5, math.radians(18+180))
+        pygame.draw.polygon(surf, self.col, dots )
+        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
+		
+
+class ShapeStar(ShapeObject):
+    def Draw(self, surf):
+        x = self.x
+        y = self.y
+        r = self.size
+        offset = math.radians(90)-math.pi*2/10
+        dots = GetDots(x, y, r, 10, offset)					# create a 10-points poligon as base
+        dots_inner = GetDots(x, y, r*0.5, 10, offset)		# create a smaller 10-points poligon as rider
+        dots[::2] = dots_inner[::2]							# replace the even dots of the base with the smaller to get the edges
+        pygame.draw.polygon(surf, self.col, dots )
+        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
+
+
+		
+
+
+shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
+                'TRIANGLE' : lambda x,y,r,col: ShapeTriangle(x,y,r,col),
+                'RECTANGLE' : lambda x,y,r,col: ShapeRectangle(x,y,r,col),
+                'PENTAGON' : lambda x,y,r,col: ShapePentagon(x,y,r,col), 		
+                'STAR' : lambda x,y,r,col: ShapeStar(x,y,r,col), 		
+				}		
+			
+		
+
+def get_activity_object(max_x, max_y, max_size):
     """
 	Draw a random activity (shape, ...)
 	"""
 	
-    pygame.draw.rect(surf, COL_BLACK, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
+#    pygame.draw.rect(surf, COL_BLACK, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
 	
     x = randint(MIN_SHAPE_SIZE*2, max_x-MIN_SHAPE_SIZE*2-1)
     y = randint(MIN_SHAPE_SIZE*2, max_y-MIN_SHAPE_SIZE*2-1)
     r = randint(MIN_SHAPE_SIZE, MIN_SHAPE_SIZE+max_size)
-    col = col_dict.values()[ randint(0, len(col_dict)-1) ]
-    activity = randint(0, MAX_ACTIVITY-1)
+
+    col_name = col_dict.keys()[ randint(0, len(col_dict)-1) ]
+    shape_name = shapes_dict.keys()[ randint(0, len(shapes_dict)-1) ]
+
+    col = col_dict[col_name]
+    new_shape = shapes_dict[shape_name](x,y,r,col)
     
-    sound_file = sound_list[randint(0, len(sound_list)-1)]
+#    sound_file = sound_list[randint(0, len(sound_list)-1)]
 	
-    new_shape = ShapeTriangle(x, y, r, col)
-	
-    if (activity == 0):
-	    new_shape = ShapeCircle(x, y, r, col)
-    elif (activity == 1):
-	    new_shape = ShapeRectangle(x, y, r, col)
-    elif (activity == 2):
-	    new_shape = ShapeTriangle(x, y, r, col)
-		
-    new_shape.Draw(surf)
-    play_sound(sound_file)	
+    return new_shape
+#    play_sound(sound_file)	
 
 
-			
+
+def initiate_sound(sound_list):
+    snd = sound_list[randint(0, len(sound_list)-1)]
+    snd.play(0)
+    return snd;
+
+	
+	
 def main():
     """
 	Main game loop - initializes the display, pre-loads resources 
@@ -148,8 +188,9 @@ def main():
     sound_list = []
     for file in os.listdir("sounds"):
         if file.endswith(".mp3"):
-            sound_list.append(os.path.join("sounds", file))
-		
+            filename = os.path.join("sounds", file)
+            sound_list.append(pygame.mixer.Sound(filename))
+
 		
 		
 	"""
@@ -157,8 +198,12 @@ def main():
 	"""
     while True: # main game loop
         for event in pygame.event.get():
-	        if (event.type == KEYDOWN):
-		        draw_random_activity(DISPLAYSURF, max_x, max_y, 200, sound_list)
+	        if (event.type == KEYDOWN) or (event.type == MOUSEBUTTONDOWN):
+	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'], (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
+	            new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
+	            new_activity.Draw(DISPLAYSURF)
+	            initiate_sound(sound_list)
+#		        draw_random_activity(DISPLAYSURF, max_x, max_y, 200, sound_list)
 
 	        elif (event.type == QUIT):
 	            print("Quiting")
