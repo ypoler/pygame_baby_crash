@@ -1,5 +1,4 @@
 import os
-import time
 import sys
 import pygame
 import argparse
@@ -10,6 +9,8 @@ from random import randint
 
 MIN_SHAPE_SIZE = 100
 MAX_SHAPE_SIZE = 200
+
+ACTIVITY_SOUND_MODE_RANDOM = 1
 
 
 col_dict = { 'RED' : (255, 0, 0),
@@ -22,18 +23,17 @@ col_dict = { 'RED' : (255, 0, 0),
              'ORANGE' : (255, 128, 0)  
  			}
 
+shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
+                'TRIANGLE' : lambda x,y,r,col: ShapeTriangle(x,y,r,col),
+                'RECTANGLE' : lambda x,y,r,col: ShapeRectangle(x,y,r,col),
+                'PENTAGON' : lambda x,y,r,col: ShapePentagon(x,y,r,col), 		
+                'STAR' : lambda x,y,r,col: ShapeStar(x,y,r,col), 		
+				}		
+			
+sound_list_random_fx = []			
 			
 	
-def play_sound(filename):
-    """
-	Play a sound
-	NOTE: uses music instead of sound since there seems to be a 
-	problem with the channel/sound in windows 10, python 2.7 - however, music does work
-	"""
-    pygame.mixer.music.load(filename)
-    pygame.mixer.music.play(0)	
-
-
+	
 
 def GetDots(x, y, r, n, offset=0):
     dots = []
@@ -116,13 +116,6 @@ class ShapeStar(ShapeObject):
 		
 
 
-shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
-                'TRIANGLE' : lambda x,y,r,col: ShapeTriangle(x,y,r,col),
-                'RECTANGLE' : lambda x,y,r,col: ShapeRectangle(x,y,r,col),
-                'PENTAGON' : lambda x,y,r,col: ShapePentagon(x,y,r,col), 		
-                'STAR' : lambda x,y,r,col: ShapeStar(x,y,r,col), 		
-				}		
-			
 		
 
 def get_activity_object(max_x, max_y, max_size):
@@ -141,7 +134,35 @@ def get_activity_object(max_x, max_y, max_size):
 	
     return new_shape 
 
-	
+
+
+def PlaySoundForActivity(mode, activityObj):
+    def play_sound(filename):
+        """
+	    Play a sound
+	    NOTE: uses music instead of sound since there seems to be a 
+	    problem with the channel/sound in windows 10, python 2.7 - however, music does work
+	    """
+        pygame.mixer.music.load(filename)
+        pygame.mixer.music.play(0)	
+
+    """
+	Select the sound(s) to play for the given activity that was chosen 
+	"""
+    if (mode == ACTIVITY_SOUND_MODE_RANDOM):
+        play_sound(sound_list_random_fx[randint(0, len(sound_list_random_fx)-1)])	
+
+
+
+def InitializeSoundList():
+    """
+    Initializes the first sound list for random FX
+    """
+    for file in os.listdir("sounds"):
+        if file.endswith(".mp3"):
+            filename = os.path.join("sounds", file)
+            sound_list_random_fx.append(filename)
+
 	
 	
 def main():
@@ -160,7 +181,7 @@ def main():
     Initialize the display settings based on the display device and args
     """
     pygame.init()
-
+    InitializeSoundList()
 	
     info = pygame.display.Info()
     max_x = info.current_w
@@ -176,17 +197,6 @@ def main():
 
 	
     """
-    Get the sounds list
-    """
-    sound_list = []
-    chn = pygame.mixer.Channel(0)
-    for file in os.listdir("sounds"):
-        if file.endswith(".mp3"):
-            filename = os.path.join("sounds", file)
-            sound_list.append(filename)
-
-
-    """
 	Main loop - waits for key and activates an activity 
 	"""
     while True: # main game loop
@@ -195,7 +205,7 @@ def main():
 	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'], (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
 	            new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
 	            new_activity.Draw(DISPLAYSURF)
-	            play_sound(sound_list[randint(0, len(sound_list)-1)])	
+	            PlaySoundForActivity(ACTIVITY_SOUND_MODE_RANDOM, new_activity)
 
 	        elif (event.type == QUIT):
 	            print("Quiting")
