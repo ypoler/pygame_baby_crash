@@ -1,4 +1,5 @@
 import os
+import time
 import sys
 import pygame
 import argparse
@@ -26,6 +27,8 @@ col_dict = { 'RED' : (255, 0, 0),
 def play_sound(filename):
     """
 	Play a sound
+	NOTE: uses music instead of sound since there seems to be a 
+	problem with the channel/sound in windows 10, python 2.7 - however, music does work
 	"""
     pygame.mixer.music.load(filename)
     pygame.mixer.music.play(0)	
@@ -126,9 +129,6 @@ def get_activity_object(max_x, max_y, max_size):
     """
 	Draw a random activity (shape, ...)
 	"""
-	
-#    pygame.draw.rect(surf, COL_BLACK, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
-	
     x = randint(MIN_SHAPE_SIZE*2, max_x-MIN_SHAPE_SIZE*2-1)
     y = randint(MIN_SHAPE_SIZE*2, max_y-MIN_SHAPE_SIZE*2-1)
     r = randint(MIN_SHAPE_SIZE, MIN_SHAPE_SIZE+max_size)
@@ -138,19 +138,10 @@ def get_activity_object(max_x, max_y, max_size):
 
     col = col_dict[col_name]
     new_shape = shapes_dict[shape_name](x,y,r,col)
-    
-#    sound_file = sound_list[randint(0, len(sound_list)-1)]
 	
-    return new_shape
-#    play_sound(sound_file)	
+    return new_shape 
 
-
-
-def initiate_sound(sound_list):
-    snd = sound_list[randint(0, len(sound_list)-1)]
-    snd.play(0)
-    return snd;
-
+	
 	
 	
 def main():
@@ -169,6 +160,8 @@ def main():
     Initialize the display settings based on the display device and args
     """
     pygame.init()
+
+	
     info = pygame.display.Info()
     max_x = info.current_w
     max_y = info.current_h
@@ -186,14 +179,14 @@ def main():
     Get the sounds list
     """
     sound_list = []
+    chn = pygame.mixer.Channel(0)
     for file in os.listdir("sounds"):
         if file.endswith(".mp3"):
             filename = os.path.join("sounds", file)
-            sound_list.append(pygame.mixer.Sound(filename))
+            sound_list.append(filename)
 
-		
-		
-	"""
+
+    """
 	Main loop - waits for key and activates an activity 
 	"""
     while True: # main game loop
@@ -202,8 +195,7 @@ def main():
 	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'], (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
 	            new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
 	            new_activity.Draw(DISPLAYSURF)
-	            initiate_sound(sound_list)
-#		        draw_random_activity(DISPLAYSURF, max_x, max_y, 200, sound_list)
+	            play_sound(sound_list[randint(0, len(sound_list)-1)])	
 
 	        elif (event.type == QUIT):
 	            print("Quiting")
