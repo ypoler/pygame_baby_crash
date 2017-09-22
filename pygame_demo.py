@@ -1,3 +1,21 @@
+##################################################
+#
+#   This demo is a quick build for baby smash activity -
+#   It is based on pygame and intended to randomize a shape, colour or image
+#   and print it to screen whenever the baby hits a key.
+#   Another addition is HEB <--> RUS naming of the shape or colour or image.
+#
+#   The game was developed on windows10 with python 2.7, and perhaps as result
+#   encountered some development sound problems:
+#   1. Sound channel isn't working (not mp3, ogg or anything) - insead of sound 
+#      there's an initial static but no sound - only music channel is working
+#      hence sound is played with music insead of sound channle.
+#   2. Music channel doesn't play queues tracks, thereofore, instead of saying shape
+#      first, queueing the colour and hearing it after the shape is finished playing,
+#      we don't have more than one played sound, so we randomize if the voice will 
+#      say the shape's name or its colour.
+#
+##################################################
 import os
 import sys
 import pygame
@@ -12,14 +30,27 @@ MAX_SHAPE_SIZE = 200
 ACTIVITY_SOUND_MODE_RANDOM = 1
 
 
-col_dict = { 'RED' : (255, 0, 0),
-             'GREEN' : (0, 255, 0), 
-			 'BLUE' : (0, 0, 255),
-			 'YELLOW' : (255, 255, 0),
-             'WHITE' : (255, 255, 255),
-			 'BLACK' : (0, 0, 0),
-			 'PURPLE' : (128, 0, 128),
-             'ORANGE' : (255, 128, 0)  
+
+class ColourObject():
+    """
+	Container class for colour - colour value and its filename
+	"""
+    colour = None
+    filename = None	
+	
+    def __init__(self, colour, filename):
+        self.colour = colour
+        self.filename = filename
+
+		
+col_dict = { 'RED' : ColourObject( (255, 0, 0), ['sounds\\red.ogg']),
+             'GREEN' : ColourObject( (0, 255, 0), ['sounds\\green.ogg']), 
+			 'BLUE' : ColourObject( (0, 0, 255), ['sounds\\blue.ogg']),
+			 'YELLOW' : ColourObject( (255, 255, 0), ['sounds\\yellow.ogg']),
+             'WHITE' : ColourObject( (255, 255, 255), ['sounds\\white.ogg']),
+			 'BLACK' : ColourObject( (0, 0, 0), ['sounds\\black.ogg']),
+			 'PURPLE' : ColourObject( (128, 0, 128), ['sounds\\purple.ogg']),
+             'ORANGE' : ColourObject( (255, 128, 0), ['sounds\\orange.ogg']),
  			}
 
 shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
@@ -29,10 +60,17 @@ shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
                 'STAR' : lambda x,y,r,col: ShapeStar(x,y,r,col), 		
 				}		
 
-images_dict = {}
+images_dict = { 'DOG' : lambda x,y: ImageDog(x,y),
+                'CAT' : lambda x,y: ImageCat(x,y),
+                'DOLPHIN' : lambda x,y: ImageDolphin(x,y),
+                'GOOSE' : lambda x,y: ImageGoose(x,y),
+                'HORSE' : lambda x,y: ImageHorse(x,y),
+                'BEAR' : lambda x,y: ImageBear(x,y)
+			  }
 				
-sound_list_random_fx = []			
-			
+				
+__image_on_demand_dict__ = {}
+							
 	
 
 
@@ -40,19 +78,58 @@ def GetImage(filename):
     """
 	Loads images only once by storing to global dictionary
 	"""
-    if (images_dict.has_key(filename)) == False:
+    if (__image_on_demand_dict__.has_key(filename)) == False:
         img = pygame.image.load(filename)
-        images_dict[filename] = img
-    return  images_dict[filename]
+        __image_on_demand_dict__[filename] = img
+    return  __image_on_demand_dict__[filename]
 	
 
 def GetDots(x, y, r, n, offset=0):
+    """
+	Function that sets N points on a radius
+	"""
     dots = []
     for idx in range(n):
-        dots.append( ( x+r*math.cos(math.pi*2/n*(idx-1)+offset), y+r*math.sin(math.pi*2/n*(idx-1)+offset) ) )
+        dots.append( ( int( x+r*math.cos(math.pi*2/n*(idx-1)+offset) ), int( y+r*math.sin(math.pi*2/n*(idx-1)+offset) ) ) )
     return dots
+			
 	
-class ShapeObject:
+class ActivityObject(object):
+    """
+	Generic activity object - has location and can draw and play sound(s)
+	"""
+    x = 0
+    y = 0
+    name = None
+    sounds = []
+
+    def __init__(self, x, y, name, sounds):
+        self.x = int(x)
+        self.y = int(y)
+        self.name = name
+        self.sounds = sounds
+
+    def Draw(self, surf):
+        pass	
+	
+    def PlaySound(self):
+	    """
+	    Choose a random set of sounds and play them in queue
+	    NOTE: the queue functionallity isn't working - only first track is played
+	    """
+	    if (self.sounds != None):
+	        lst_idx = randint(0, len(self.sounds)-1)
+	        snd_list = self.sounds[lst_idx]
+	        pygame.mixer.music.stop()
+	        for idx, snd in enumerate(snd_list):
+	            if (idx == 0):
+	                pygame.mixer.music.load(snd)
+	                pygame.mixer.music.play()
+	            else:
+	                pygame.mixer.music.queue(snd)
+	
+	
+class ShapeObject(ActivityObject):
     """
 	Generic shape object
 	"""
@@ -61,9 +138,13 @@ class ShapeObject:
     size = 0
     col = col_dict['BLACK']
 
-    def __init__(self, x, y, size, col):
-        self.x = x
-        self.y = y
+    def __init__(self, x, y, name, snd_lst, size, col):
+        if (col.filename != None):
+            if ((snd_lst) == None):
+                snd_lst = [ col.filename ]
+            else:
+                snd_lst.append(col.filename)
+        super(ShapeObject, self).__init__(x, y, name, snd_lst)
         self.size = size
         self.col = col
 
@@ -71,47 +152,61 @@ class ShapeObject:
         pass	
 		
 
-
 class ShapeCircle(ShapeObject):
+    def __init__(self, x, y, size, col):
+        super(ShapeCircle, self).__init__( x, y, 'CIRCLE', [['sounds\\circle.ogg']], size, col)
+	
     def Draw(self, surf):
 		x = self.x
 		y = self.y
 		r = self.size
-		pygame.draw.circle(surf, self.col, (x, y), r)
-		pygame.draw.circle(surf, col_dict['WHITE'], (x, y), r, 1)
+		pygame.draw.circle(surf, self.col.colour, (x, y), r)
+		pygame.draw.circle(surf, col_dict['WHITE'].colour, (x, y), r, 1)
 	
 
 class ShapeTriangle(ShapeObject):
+    def __init__(self, x, y, size, col):
+        super(ShapeTriangle, self).__init__(x, y, 'TRIANGLE', [['sounds\\triangle.ogg']], size, col)
+
     def Draw(self, surf):
         x = self.x
         y = self.y
         r = self.size
         dots = GetDots(x, y, r, 3, math.radians(30))
-        pygame.draw.polygon(surf, self.col, dots ) 
-        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1)
+        pygame.draw.polygon(surf, self.col.colour, dots ) 
+        pygame.draw.polygon(surf, col_dict['WHITE'].colour, dots, 1)
 	
 
 class ShapeRectangle(ShapeObject):
+    def __init__(self, x, y, size, col):
+        super(ShapeRectangle, self).__init__(x, y, 'RECTANGLE', [['sounds\\rectangle.ogg']], size, col)
+
     def Draw(self, surf):
         x = self.x
         y = self.y
         r = self.size
         dots = GetDots(x, y, r, 4, math.radians(45))
-        pygame.draw.polygon(surf, self.col, dots ) 
-        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
+        pygame.draw.polygon(surf, self.col.colour, dots ) 
+        pygame.draw.polygon(surf, col_dict['WHITE'].colour, dots, 1) 
 		
 
 class ShapePentagon(ShapeObject):
+    def __init__(self, x, y, size, col):
+        super(ShapePentagon, self).__init__(x, y, 'PENTAGON', [['sounds\\pentagon.ogg']], size, col)
+
     def Draw(self, surf):
         x = self.x
         y = self.y
         r = self.size
         dots = GetDots(x, y, r, 5, math.radians(18+180))
-        pygame.draw.polygon(surf, self.col, dots )
-        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
+        pygame.draw.polygon(surf, self.col.colour, dots )
+        pygame.draw.polygon(surf, col_dict['WHITE'].colour, dots, 1) 
 		
 
 class ShapeStar(ShapeObject):
+    def __init__(self, x, y, size, col):
+        super(ShapeStar, self).__init__(x, y, 'STAR', [['sounds\\star.ogg']], size, col)
+
     def Draw(self, surf):
         x = self.x
         y = self.y
@@ -120,73 +215,87 @@ class ShapeStar(ShapeObject):
         dots = GetDots(x, y, r, 10, offset)					# create a 10-points poligon as base
         dots_inner = GetDots(x, y, r*0.5, 10, offset)		# create a smaller 10-points poligon as rider
         dots[::2] = dots_inner[::2]							# replace the even dots of the base with the smaller to get the edges
-        pygame.draw.polygon(surf, self.col, dots )
-        pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
+        pygame.draw.polygon(surf, self.col.colour, dots )
+        pygame.draw.polygon(surf, col_dict['WHITE'].colour, dots, 1) 
 
 
-class ImageDisplayer(ShapeObject):
+class ImageDisplayer(ActivityObject):
+    """
+	Displays an image 
+	"""
     name = ""
     img = None
     fliename = ""
+	
+    def __init__(self, x, y, name, img_filename, snd_list):
+        img = GetImage(img_filename)
+        x = x - img.get_width()*0.5
+        y = y - img.get_height()*0.5
+        super(ImageDisplayer, self).__init__(x, y, name, snd_list)
+        self.filename = img_filename
     
     def Draw(self, surf):
         img = GetImage(self.filename)
         surf.blit(img, (self.x, self.y) )
-        pygame.draw.rect(surf, col_dict['WHITE'], (self.x, self.y, img.get_width(), img.get_height()), 1)
-
-    def __init__(self, x, y, filename, name):
-        img = GetImage(filename)
-        self.x = x - img.get_width()*0.5
-        self.y = y - img.get_height()*0.5
-        self.name = name
-        self.filename = filename
-		
+        pygame.draw.rect(surf, col_dict['WHITE'].colour, (self.x, self.y, img.get_width(), img.get_height()), 1)
 		
 
+class ImageDog(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageDog, self).__init__(x, y, 'DOG', 'images\\dog.jpg', [['sounds\\dog.ogg']])
+
+		
+class ImageCat(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageCat, self).__init__(x, y, 'CAT', 'images\\cat.jpg', [['sounds\\cat.ogg']])
+
+		
+class ImageBear(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageBear, self).__init__(x, y, 'BEAR', 'images\\bear.jpg', [['sounds\\bear.ogg']])
+
+		
+class ImageDolphin(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageDolphin, self).__init__(x, y, 'DOLPHIN', 'images\\dolphin.jpg', [['sounds\\dolphin.ogg']])
+
+		
+class ImageGoose(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageGoose, self).__init__(x, y, 'GOOSE', 'images\\goose.jpg', [['sounds\\goose.ogg']])
+
+		
+class ImageHorse(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageHorse, self).__init__(x, y, 'HORSE', 'images\\horse.jpg', [['sounds\\horse.ogg']])
+
+		
+		
 def get_activity_object(max_x, max_y, max_size):
     """
-	Draw a random activity (shape, ...)
-	"""
-    x = randint(MIN_SHAPE_SIZE*2, max_x-MIN_SHAPE_SIZE*2-1)
-    y = randint(MIN_SHAPE_SIZE*2, max_y-MIN_SHAPE_SIZE*2-1)
-    r = randint(MIN_SHAPE_SIZE, MIN_SHAPE_SIZE+max_size)
-
-    col_name = col_dict.keys()[ randint(0, len(col_dict)-1) ]
-    shape_name = shapes_dict.keys()[ randint(0, len(shapes_dict)-1) ]
-
-    col = col_dict[col_name]
-    new_shape = ImageDisplayer(x,y,"images\\dog.png", "racecar")
-
-    return new_shape 
-
-
-
-def PlaySoundForActivity(mode, activityObj):
-    def play_sound(filename):
+    Draw a random activity (shape, ...)
+    """
+    p = randint(0, 1)
+    if (p == 0):
         """
-	    Play a sound
-	    NOTE: uses music instead of sound since there seems to be a 
-	    problem with the channel/sound in windows 10, python 2.7 - however, music does work
-	    """
-        pygame.mixer.music.load(filename)
-        pygame.mixer.music.play(0)	
+        Choose a shape
+        """
+        x = max_x*0.5
+        y = max_y*0.5
+        x = randint(MIN_SHAPE_SIZE*2, max_x-MIN_SHAPE_SIZE*2-1)
+        y = randint(MIN_SHAPE_SIZE*2, max_y-MIN_SHAPE_SIZE*2-1)
+        r = randint(MIN_SHAPE_SIZE, MIN_SHAPE_SIZE+max_size)
 
-    """
-	Select the sound(s) to play for the given activity that was chosen 
-	"""
-    if (mode == ACTIVITY_SOUND_MODE_RANDOM):
-        play_sound(sound_list_random_fx[randint(0, len(sound_list_random_fx)-1)])	
-
-
-
-def InitializeSoundList():
-    """
-    Initializes the first sound list for random FX
-    """
-    for file in os.listdir("sounds"):
-        if file.endswith(".mp3"):
-            filename = os.path.join("sounds", file)
-            sound_list_random_fx.append(filename)
+        col_name = col_dict.keys()[ randint(0, len(col_dict)-1) ]
+        col = col_dict[col_name]
+        shape_name = shapes_dict.keys()[ randint(0, len(shapes_dict)-1) ]
+        new_activity = shapes_dict[shape_name](x,y,max_size,col)
+		
+    else:	
+        image_name = images_dict.keys()[ randint(0, len(images_dict)-1) ]
+        new_activity = images_dict[image_name](max_x*0.5, max_y*0.5)	
+	
+    return new_activity 
 
 	
 	
@@ -206,7 +315,6 @@ def main():
     Initialize the display settings based on the display device and args
     """
     pygame.init()
-    InitializeSoundList()
 	
     info = pygame.display.Info()
     max_x = info.current_w
@@ -227,11 +335,10 @@ def main():
     while True: # main game loop
         for event in pygame.event.get():
 	        if (event.type == KEYDOWN) or (event.type == MOUSEBUTTONDOWN):
-	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'], (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
+	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'].colour, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
 	            new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
-	            print(new_activity.name)
 	            new_activity.Draw(DISPLAYSURF)
-	            PlaySoundForActivity(ACTIVITY_SOUND_MODE_RANDOM, new_activity)
+	            new_activity.PlaySound()
 
 	        elif (event.type == QUIT):
 	            print("Quiting")
