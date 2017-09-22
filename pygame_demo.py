@@ -9,7 +9,6 @@ from random import randint
 
 MIN_SHAPE_SIZE = 100
 MAX_SHAPE_SIZE = 200
-
 ACTIVITY_SOUND_MODE_RANDOM = 1
 
 
@@ -29,10 +28,22 @@ shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
                 'PENTAGON' : lambda x,y,r,col: ShapePentagon(x,y,r,col), 		
                 'STAR' : lambda x,y,r,col: ShapeStar(x,y,r,col), 		
 				}		
-			
+
+images_dict = {}
+				
 sound_list_random_fx = []			
 			
 	
+
+
+def GetImage(filename):
+    """
+	Loads images only once by storing to global dictionary
+	"""
+    if (images_dict.has_key(filename)) == False:
+        img = pygame.image.load(filename)
+        images_dict[filename] = img
+    return  images_dict[filename]
 	
 
 def GetDots(x, y, r, n, offset=0):
@@ -113,9 +124,23 @@ class ShapeStar(ShapeObject):
         pygame.draw.polygon(surf, col_dict['WHITE'], dots, 1) 
 
 
+class ImageDisplayer(ShapeObject):
+    name = ""
+    img = None
+    fliename = ""
+    
+    def Draw(self, surf):
+        img = GetImage(self.filename)
+        surf.blit(img, (self.x, self.y) )
+        pygame.draw.rect(surf, col_dict['WHITE'], (self.x, self.y, img.get_width(), img.get_height()), 1)
+
+    def __init__(self, x, y, filename, name):
+        img = GetImage(filename)
+        self.x = x - img.get_width()*0.5
+        self.y = y - img.get_height()*0.5
+        self.name = name
+        self.filename = filename
 		
-
-
 		
 
 def get_activity_object(max_x, max_y, max_size):
@@ -130,8 +155,8 @@ def get_activity_object(max_x, max_y, max_size):
     shape_name = shapes_dict.keys()[ randint(0, len(shapes_dict)-1) ]
 
     col = col_dict[col_name]
-    new_shape = shapes_dict[shape_name](x,y,r,col)
-	
+    new_shape = ImageDisplayer(x,y,"images\\dog.png", "racecar")
+
     return new_shape 
 
 
@@ -204,6 +229,7 @@ def main():
 	        if (event.type == KEYDOWN) or (event.type == MOUSEBUTTONDOWN):
 	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'], (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
 	            new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
+	            print(new_activity.name)
 	            new_activity.Draw(DISPLAYSURF)
 	            PlaySoundForActivity(ACTIVITY_SOUND_MODE_RANDOM, new_activity)
 
