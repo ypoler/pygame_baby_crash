@@ -43,14 +43,14 @@ class ColourObject():
         self.filename = filename
 
 		
-col_dict = { 'RED' : ColourObject( (255, 0, 0), ['sounds\\red.ogg']),
-             'GREEN' : ColourObject( (0, 255, 0), ['sounds\\green.ogg']), 
-			 'BLUE' : ColourObject( (0, 0, 255), ['sounds\\blue.ogg']),
-			 'YELLOW' : ColourObject( (255, 255, 0), ['sounds\\yellow.ogg']),
-             'WHITE' : ColourObject( (255, 255, 255), ['sounds\\white.ogg']),
-			 'BLACK' : ColourObject( (0, 0, 0), ['sounds\\black.ogg']),
-			 'PURPLE' : ColourObject( (128, 0, 128), ['sounds\\purple.ogg']),
-             'ORANGE' : ColourObject( (255, 128, 0), ['sounds\\orange.ogg']),
+col_dict = { 'RED' : ColourObject( (255, 0, 0), ['sounds//red.ogg']),
+             'GREEN' : ColourObject( (0, 255, 0), ['sounds//green.ogg']), 
+			 'BLUE' : ColourObject( (0, 0, 255), ['sounds//blue.ogg']),
+			 'YELLOW' : ColourObject( (255, 255, 0), ['sounds//yellow.ogg']),
+             'WHITE' : ColourObject( (255, 255, 255), ['sounds//white.ogg']),
+			 'BLACK' : ColourObject( (0, 0, 0), ['sounds//black.ogg']),
+			 'PURPLE' : ColourObject( (128, 0, 128), ['sounds//purple.ogg']),
+             'ORANGE' : ColourObject( (255, 128, 0), ['sounds//orange.ogg']),
  			}
 
 shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
@@ -154,7 +154,7 @@ class ShapeObject(ActivityObject):
 
 class ShapeCircle(ShapeObject):
     def __init__(self, x, y, size, col):
-        super(ShapeCircle, self).__init__( x, y, 'CIRCLE', [['sounds\\circle.ogg']], size, col)
+        super(ShapeCircle, self).__init__( x, y, 'CIRCLE', [['sounds//circle.ogg']], size, col)
 	
     def Draw(self, surf):
 		x = self.x
@@ -166,7 +166,7 @@ class ShapeCircle(ShapeObject):
 
 class ShapeTriangle(ShapeObject):
     def __init__(self, x, y, size, col):
-        super(ShapeTriangle, self).__init__(x, y, 'TRIANGLE', [['sounds\\triangle.ogg']], size, col)
+        super(ShapeTriangle, self).__init__(x, y, 'TRIANGLE', [['sounds//triangle.ogg']], size, col)
 
     def Draw(self, surf):
         x = self.x
@@ -179,7 +179,7 @@ class ShapeTriangle(ShapeObject):
 
 class ShapeRectangle(ShapeObject):
     def __init__(self, x, y, size, col):
-        super(ShapeRectangle, self).__init__(x, y, 'RECTANGLE', [['sounds\\rectangle.ogg']], size, col)
+        super(ShapeRectangle, self).__init__(x, y, 'RECTANGLE', [['sounds//rectangle.ogg']], size, col)
 
     def Draw(self, surf):
         x = self.x
@@ -192,7 +192,7 @@ class ShapeRectangle(ShapeObject):
 
 class ShapePentagon(ShapeObject):
     def __init__(self, x, y, size, col):
-        super(ShapePentagon, self).__init__(x, y, 'PENTAGON', [['sounds\\pentagon.ogg']], size, col)
+        super(ShapePentagon, self).__init__(x, y, 'PENTAGON', [['sounds//pentagon.ogg']], size, col)
 
     def Draw(self, surf):
         x = self.x
@@ -205,7 +205,7 @@ class ShapePentagon(ShapeObject):
 
 class ShapeStar(ShapeObject):
     def __init__(self, x, y, size, col):
-        super(ShapeStar, self).__init__(x, y, 'STAR', [['sounds\\star.ogg']], size, col)
+        super(ShapeStar, self).__init__(x, y, 'STAR', [['sounds//star.ogg']], size, col)
 
     def Draw(self, surf):
         x = self.x
@@ -242,32 +242,32 @@ class ImageDisplayer(ActivityObject):
 
 class ImageDog(ImageDisplayer):
     def __init__(self, x, y):
-        super(ImageDog, self).__init__(x, y, 'DOG', 'images\\dog.jpg', [['sounds\\dog.ogg']])
+        super(ImageDog, self).__init__(x, y, 'DOG', 'images//dog.jpg', [['sounds//dog.ogg']])
 
 		
 class ImageCat(ImageDisplayer):
     def __init__(self, x, y):
-        super(ImageCat, self).__init__(x, y, 'CAT', 'images\\cat.jpg', [['sounds\\cat.ogg']])
+        super(ImageCat, self).__init__(x, y, 'CAT', 'images//cat.jpg', [['sounds//cat.ogg']])
 
 		
 class ImageBear(ImageDisplayer):
     def __init__(self, x, y):
-        super(ImageBear, self).__init__(x, y, 'BEAR', 'images\\bear.jpg', [['sounds\\bear.ogg']])
+        super(ImageBear, self).__init__(x, y, 'BEAR', 'images//bear.jpg', [['sounds//bear.ogg']])
 
 		
 class ImageDolphin(ImageDisplayer):
     def __init__(self, x, y):
-        super(ImageDolphin, self).__init__(x, y, 'DOLPHIN', 'images\\dolphin.jpg', [['sounds\\dolphin.ogg']])
+        super(ImageDolphin, self).__init__(x, y, 'DOLPHIN', 'images//dolphin.jpg', [['sounds//dolphin.ogg']])
 
 		
 class ImageGoose(ImageDisplayer):
     def __init__(self, x, y):
-        super(ImageGoose, self).__init__(x, y, 'GOOSE', 'images\\goose.jpg', [['sounds\\goose.ogg']])
+        super(ImageGoose, self).__init__(x, y, 'GOOSE', 'images//goose.jpg', [['sounds//goose.ogg']])
 
 		
 class ImageHorse(ImageDisplayer):
     def __init__(self, x, y):
-        super(ImageHorse, self).__init__(x, y, 'HORSE', 'images\\horse.jpg', [['sounds\\horse.ogg']])
+        super(ImageHorse, self).__init__(x, y, 'HORSE', 'images//horse.jpg', [['sounds//horse.ogg']])
 
 		
 		
