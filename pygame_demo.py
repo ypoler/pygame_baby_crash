@@ -21,6 +21,7 @@ import sys
 import pygame
 import argparse
 import math
+from datetime import datetime
 from pygame.locals import *
 from random import randint
 
@@ -28,7 +29,7 @@ from random import randint
 MIN_SHAPE_SIZE = 100
 MAX_SHAPE_SIZE = 200
 ACTIVITY_SOUND_MODE_RANDOM = 1
-
+MAX_TIME_DIFF_SECONDS = 1
 
 
 class ColourObject():
@@ -332,13 +333,19 @@ def main():
     """
 	Main loop - waits for key and activates an activity 
 	"""
+    last_click_timestamp = datetime(1, 1, 1)    # Minimal timedate, just for starters
+	
     while True: # main game loop
         for event in pygame.event.get():
 	        if (event.type == KEYDOWN) or (event.type == MOUSEBUTTONDOWN):
-	            pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'].colour, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
-	            new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
-	            new_activity.Draw(DISPLAYSURF)
-	            new_activity.PlaySound()
+			    now_time = datetime.now()
+			    delta = now_time - last_click_timestamp
+			    if (delta.seconds > MAX_TIME_DIFF_SECONDS):
+			        last_click_timestamp = now_time
+			        pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'].colour, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
+			        new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
+			        new_activity.Draw(DISPLAYSURF)
+			        new_activity.PlaySound()
 
 	        elif (event.type == QUIT):
 	            print("Quiting")
