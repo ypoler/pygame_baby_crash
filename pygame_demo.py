@@ -60,17 +60,17 @@ shapes_dict = { 'CIRCLE' : lambda x,y,r,col: ShapeCircle(x,y,r,col),
                 'STAR' : lambda x,y,r,col: ShapeStar(x,y,r,col), 		
 				}		
 
-images_dict = { 'DOG' : lambda x,y: ImageDog(x,y),
-                'CAT' : lambda x,y: ImageCat(x,y),
-                'DOLPHIN' : lambda x,y: ImageDolphin(x,y),
-                'GOOSE' : lambda x,y: ImageGoose(x,y),
-                'HORSE' : lambda x,y: ImageHorse(x,y),
-                'BEAR' : lambda x,y: ImageBear(x,y),
-                'APE' : lambda x,y: ImageApe(x,y),
-                'TURTLE' : lambda x,y: ImageTurtle(x,y),
-                'FISH' : lambda x,y: ImageFish(x,y),
-                'BUTTERFLY' : lambda x,y: ImageButterfly(x,y)
-			  }
+animals_dict = { 'DOG' : lambda x,y: ImageDog(x,y),
+                 'CAT' : lambda x,y: ImageCat(x,y),
+                 'DOLPHIN' : lambda x,y: ImageDolphin(x,y),
+                 'GOOSE' : lambda x,y: ImageGoose(x,y),
+                 'HORSE' : lambda x,y: ImageHorse(x,y),
+                 'BEAR' : lambda x,y: ImageBear(x,y),
+                 'APE' : lambda x,y: ImageApe(x,y),
+                 'TURTLE' : lambda x,y: ImageTurtle(x,y),
+                 'FISH' : lambda x,y: ImageFish(x,y),
+                 'BUTTERFLY' : lambda x,y: ImageButterfly(x,y)
+			   }
 				
 				
 __image_on_demand_dict__ = {}
@@ -294,8 +294,11 @@ def get_activity_object(max_x, max_y, max_size):
     """
     Draw a random activity (shape, ...)
     """
-    p = randint(0, 1)	# random coin toss - 0 for shape, 1 for image
-    if (p == 0):
+    range_shapes = range(0, len(shapes_dict))
+    range_animals = range(len(shapes_dict), len(shapes_dict)+len(animals_dict))
+	
+    p = randint(0, len(range_shapes)+len(range_animals)-1 )    # random over all possible activities (to give them proper weight)
+    if (p in range_shapes):
         """
         Choose a shape
         """
@@ -307,15 +310,15 @@ def get_activity_object(max_x, max_y, max_size):
 
         col_name = col_dict.keys()[ randint(0, len(col_dict)-1) ]
         col = col_dict[col_name]
-        shape_name = shapes_dict.keys()[ randint(0, len(shapes_dict)-1) ]
+        shape_name = shapes_dict.keys()[p]      # the shape index was already chosen 
         new_activity = shapes_dict[shape_name](x,y,max_size,col)
 		
-    else:	
+    elif (p in range_animals):	
         """
         Choose an image
         """
-        image_name = images_dict.keys()[ randint(0, len(images_dict)-1) ]
-        new_activity = images_dict[image_name](max_x*0.5, max_y*0.5)	
+        image_name = animals_dict.keys()[p-len(shapes_dict)] # the animal index was shosen as p and adjusted
+        new_activity = animals_dict[image_name](max_x*0.5, max_y*0.5)	
 	
     return new_activity 
 
