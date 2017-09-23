@@ -28,8 +28,7 @@ from random import randint
 
 MIN_SHAPE_SIZE = 100
 MAX_SHAPE_SIZE = 200
-ACTIVITY_SOUND_MODE_RANDOM = 1
-MAX_TIME_DIFF_SECONDS = 1
+MAX_TIME_DIFF_SECONDS = 2
 
 
 class ColourObject():
@@ -276,7 +275,7 @@ def get_activity_object(max_x, max_y, max_size):
     """
     Draw a random activity (shape, ...)
     """
-    p = randint(0, 1)
+    p = randint(0, 1)	# random coin toss - 0 for shape, 1 for image
     if (p == 0):
         """
         Choose a shape
@@ -293,6 +292,9 @@ def get_activity_object(max_x, max_y, max_size):
         new_activity = shapes_dict[shape_name](x,y,max_size,col)
 		
     else:	
+        """
+        Choose an image
+        """
         image_name = images_dict.keys()[ randint(0, len(images_dict)-1) ]
         new_activity = images_dict[image_name](max_x*0.5, max_y*0.5)	
 	
@@ -309,6 +311,8 @@ def main():
     parser = argparse.ArgumentParser(description='Baby smash game')
     parser.add_argument('--window_mode', dest='window_mode', action='store_true', default='False', 
 	                    help='If set, open the display in window mode instead of full screen')					
+    parser.add_argument('--delay_time', dest='delay_time', type=int, default=MAX_TIME_DIFF_SECONDS, 
+	                    help='Time in seconds between click activation (default = 2sec). 0 means no minimal wait')					
     args = parser.parse_args()
 	
 	
@@ -340,7 +344,7 @@ def main():
 	        if (event.type == KEYDOWN) or (event.type == MOUSEBUTTONDOWN):
 			    now_time = datetime.now()
 			    delta = now_time - last_click_timestamp
-			    if (delta.seconds > MAX_TIME_DIFF_SECONDS):
+			    if (delta.seconds >= args.delay_time):
 			        last_click_timestamp = now_time
 			        pygame.draw.rect(DISPLAYSURF, col_dict['BLACK'].colour, (0, 0, max_x, max_y))        # Delete the previous screen (draw big black rect)
 			        new_activity = get_activity_object(max_x, max_y, MAX_SHAPE_SIZE)
