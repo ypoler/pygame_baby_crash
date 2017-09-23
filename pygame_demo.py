@@ -65,7 +65,11 @@ images_dict = { 'DOG' : lambda x,y: ImageDog(x,y),
                 'DOLPHIN' : lambda x,y: ImageDolphin(x,y),
                 'GOOSE' : lambda x,y: ImageGoose(x,y),
                 'HORSE' : lambda x,y: ImageHorse(x,y),
-                'BEAR' : lambda x,y: ImageBear(x,y)
+                'BEAR' : lambda x,y: ImageBear(x,y),
+                'APE' : lambda x,y: ImageApe(x,y),
+                'TURTLE' : lambda x,y: ImageTurtle(x,y),
+                'FISH' : lambda x,y: ImageFish(x,y),
+                'BUTTERFLY' : lambda x,y: ImageButterfly(x,y)
 			  }
 				
 				
@@ -269,7 +273,22 @@ class ImageHorse(ImageDisplayer):
     def __init__(self, x, y):
         super(ImageHorse, self).__init__(x, y, 'HORSE', 'images//horse.jpg', [['sounds//horse.ogg']])
 
+class ImageApe(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageApe, self).__init__(x, y, 'APE', 'images//ape.jpg', [['sounds//ape.ogg']])
 		
+class ImageButterfly(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageButterfly, self).__init__(x, y, 'APE', 'images//butterfly.jpg', [['sounds//butterfly.ogg']])
+
+class ImageTurtle(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageTurtle, self).__init__(x, y, 'TURTLE', 'images//turtle.jpg', [['sounds//turtle.ogg']])
+		
+class ImageFish(ImageDisplayer):
+    def __init__(self, x, y):
+        super(ImageFish, self).__init__(x, y, 'FISH', 'images//fish.jpg', [['sounds//fish.ogg']])
+			
 		
 def get_activity_object(max_x, max_y, max_size):
     """
