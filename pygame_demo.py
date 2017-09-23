@@ -334,7 +334,9 @@ def main():
     parser.add_argument('--window_mode', dest='window_mode', action='store_true', default='False', 
 	                    help='If set, open the display in window mode instead of full screen')					
     parser.add_argument('--delay_time', dest='delay_time', type=int, default=MAX_TIME_DIFF_SECONDS, 
-	                    help='Time in seconds between click activation (default = 2sec). 0 means no minimal wait')					
+	                    help='Time in seconds between click activation (default = 2sec). 0 means no minimal wait')
+    parser.add_argument('--activity_mode', dest='activity_mode', choices=['all', 'shapes', 'animals'], default='all',
+	                    help='Modes of possible activities')
     args = parser.parse_args()
 	
 	
@@ -355,6 +357,16 @@ def main():
 
     pygame.display.set_caption('Baby Smash')
 
+	
+    """
+    In case a specific type of activity chosen, 'hide' the other activity type so won't bear
+    included in the random activity choise
+    """
+    if (args.activity_mode == 'shapes'):
+        animals_dict.clear()# = []
+    elif (args.activity_mode == 'animals'):
+        shapes_dict.clear()# = []
+	
 	
     """
 	Main loop - waits for key and activates an activity 
